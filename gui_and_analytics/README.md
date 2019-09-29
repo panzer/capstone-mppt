@@ -14,6 +14,6 @@ Make sure you have python 3.6 or greater
 
 If less than python 3.6, figure out a way to upgrade your python version.
 
-Then:
+Then, from the `gui_and_analytics` directory:
 
-`make init`
+`./install_venv.sh`
