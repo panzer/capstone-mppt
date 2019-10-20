@@ -10,10 +10,19 @@ SOF = 0x81
 ESC = 0x7e
 
 
-class MessageType(enum.Enum):
+class MessageType(enum.IntEnum):
     NOTYPE = -1
     TEMP = 0
     LUX = 1
+
+    @staticmethod
+    def to_string(msg_type):
+        if msg_type == MessageType.NOTYPE:
+            return "no_type"
+        elif msg_type == MessageType.TEMP:
+            return "temp"
+        elif msg_type == MessageType.LUX:
+            return "lux"
 
 
 @dataclass()
