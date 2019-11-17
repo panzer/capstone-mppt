@@ -1,19 +1,26 @@
+#include "data_transfer.h"
+#include "veml7700.h"
+#include "ntc3950.h"
+
 /*
  * Capstone MPPT controller
  * 
  */
 
-void setup() {
-  // put your setup code here, to run once:
-  // initialize serial communication at 9600 bits per second:
+void setup(void) {
   Serial.begin(9600);
+  analogReference(EXTERNAL);  // Needed for temperature (ntc3950)
+
+  veml7700_init();
+
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-  // read the input on analog pin 0:
-  int sensorValue = analogRead(A0);
-  // print out the value you read:
-  Serial.println(sensorValue);
-  delay(1);        // delay in between reads for stability
+void loop(void) {
+  float temp = ntc3950_get_temperature();
+  send_msg(MSG_TEMPERATURE, (byte *) &temp, sizeof(float));
+
+  float lux = veml7700_get_lux();
+  send_msg(MSG_LUX, (byte *) &lux, sizeof(float));
+  
+  delay(1000);
 }
