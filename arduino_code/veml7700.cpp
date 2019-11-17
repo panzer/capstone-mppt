@@ -5,9 +5,9 @@
 
 Adafruit_VEML7700 veml = Adafruit_VEML7700();
 
-int veml7700_init() {
+veml7700_status_t veml7700_init() {
     if (!veml.begin()) {
-        return -1;
+        return VEML7700_NOT_FOUND;
     }
 
     veml.setGain(VEML7700_GAIN_1_8);
@@ -17,7 +17,7 @@ int veml7700_init() {
     veml.setHighThreshold(20000);
     veml.interruptEnable(true);
     
-    return 0;
+    return VEML7700_OK;
 }
 
 float veml7700_get_lux() {
