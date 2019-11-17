@@ -33,10 +33,11 @@ def main():
 
             if msg is not None:
                 measurement = struct.unpack("f", fmt.bytes_from_list(msg.data))[0]
-                logger.info("Type: {}, Data: {}".format(msg.msg_type,
+                msg_type = MessageType.to_string(msg.msg_type)
+                logger.info("Type: {}, Data: {}".format(msg_type,
                                                         measurement))
                 f.write({
-                    MessageType.to_string(msg.msg_type): measurement
+                    msg_type: measurement
                 })
 
 
