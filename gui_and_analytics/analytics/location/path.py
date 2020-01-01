@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 import pvlib as pv
 import pandas as pd
 import dataclasses
@@ -43,7 +43,7 @@ class LinearPath(Path):
         time_range = end_time - start_time
 
         if npoints is None:  # automatically determine appropriate number of points
-            npoints = 100
+            npoints = time_range / timedelta(minutes=10)
 
         lats = np.linspace(start_loc.latitude, end_loc.latitude, npoints)
 
@@ -54,4 +54,25 @@ class LinearPath(Path):
         delta = time_range / npoints
         times = [start_time + (delta * n) for n in range(npoints)]
 
-        return Path(points=points, timestamps=times)
+        return cls(points=points, timestamps=times)
+
+
+@dataclasses.dataclass()
+class SegmentedPath(Path):
+    segments: List[LinearPath] = dataclasses.field(default_factory=list)
+
+    @classmethod
+    def create(cls, start_loc: pv.location.Location, start_time: datetime):
+        instance = cls([], [])
+        instance.points = [start_loc]
+        instance.timestamps = [start_time]
+        return instance
+
+    def append_point(self, loc: pv.location.Location, time: datetime):
+        previous_loc = self.points[-1]
+        previous_time = self.timestamps[-1]
+        line = LinearPath.create(previous_loc, loc, previous_time, time)
+        self.points.extend(line.points[1:])
+        self.timestamps.extend(line.timestamps[1:])
+        self.segments.append(line)
+

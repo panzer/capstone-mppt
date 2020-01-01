@@ -12,7 +12,7 @@ def main():
     pandas.plotting.register_matplotlib_converters()
 
     ny_tz = pytz.timezone("America/New_York")
-    london_tz = pytz.timezone("Europe/London")
+    # london_tz = pytz.timezone("Europe/London")
     start = datetime(2019, 12, 19, hour=0).astimezone(ny_tz)
     end = datetime(2019, 12, 22, hour=0).astimezone(ny_tz)
     logger.debug(start)
@@ -20,7 +20,7 @@ def main():
 
     path = LinearPath.create(
         start_loc=pv.location.Location(41, -74),
-        end_loc=pv.location.Location(41, -14),
+        end_loc=pv.location.Location(41, -134),
         start_time=start,
         end_time=end
     )
