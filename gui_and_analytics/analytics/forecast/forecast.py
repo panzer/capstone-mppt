@@ -1,3 +1,4 @@
+from typing import List
 import pandas as pd
 import pvlib as pv
 import datetime
@@ -7,29 +8,15 @@ from pvlib.forecast import GFS
 from cachier import cachier
 from loguru import logger
 from analytics.location.utils import distance_btwn_loc
-
-
-def preload_forecast_in_bounds(date: datetime.date, top_right: pv.location.Location, bottom_left: pv.location.Location):
-    next_lat = get_next(top_right.latitude)
-    next_lon = get_next(top_right.longitude)
-    prev_lat = get_prev(bottom_left.latitude)
-    prev_lon = get_prev(bottom_left.longitude)
-
-    lats = [prev_lat + (0.25 * n) for n in range(round((next_lat - prev_lat) / 0.25) + 1)]
-    lons = [prev_lon + (0.25 * n) for n in range(round((next_lon - prev_lon) / 0.25) + 1)]
-
-    locs = [(lat, lon) for lat in lats for lon in lons]
-    logger.info(f"Preloading {len(locs)} forecasts...")
-
-    for loc in locs:
-        lat, lon = loc
-        logger.debug(f"Starting: {lat} {lon} {date}")
-        _get_forecast_gfs_day(lat, lon, date)
-
-    logger.info("Preload complete.")
+from analytics.location.path import Path
 
 
 def get_forecast_single(time: datetime.datetime, location: pv.location.Location) -> pd.DataFrame:
+    """
+    Obtain the GFS forecast for a single point on the globe, at a specific time.
+    Note: the time provided can be no further than 7 days in the future.
+    Time should include timezone information (tz-aware, via tzinfo)
+    """
     if time.hour % 3 == 0 and time.minute == 0 and time.second == 0 and time.microsecond == 0:
         # edge case: on 3 hour interval
         return get_forecast_on_time(time, location)
@@ -54,9 +41,43 @@ def get_forecast_single(time: datetime.datetime, location: pv.location.Location)
     a = forecast_earlier.reindex([time], method='nearest')
     b = forecast_later.reindex([time], method='nearest')
 
-    tot = a + b
-    logger.info(tot['total_clouds'])
-    return tot
+    return a + b
+
+
+def get_forecast_time_range(times: pd.DatetimeIndex, location: pv.location.Location) -> pd.DataFrame:
+    df = pd.DataFrame()
+    for time in times.tolist():  # type: datetime.datetime
+        forecast = get_forecast_single(time, location)
+        df = df.append(forecast)
+    return df
+
+
+def get_forecast_path(path: Path) -> pd.DataFrame:
+    df = pd.DataFrame()
+    for time, loc in path:
+        row = get_forecast_single(time, loc)
+        df = df.append(row)
+    return df
+
+
+def preload_forecast_in_bounds(date: datetime.date, top_right: pv.location.Location, bottom_left: pv.location.Location):
+    next_lat = get_next(top_right.latitude)
+    next_lon = get_next(top_right.longitude)
+    prev_lat = get_prev(bottom_left.latitude)
+    prev_lon = get_prev(bottom_left.longitude)
+
+    lats = [prev_lat + (0.25 * n) for n in range(round((next_lat - prev_lat) / 0.25) + 1)]
+    lons = [prev_lon + (0.25 * n) for n in range(round((next_lon - prev_lon) / 0.25) + 1)]
+
+    locs = [(lat, lon) for lat in lats for lon in lons]
+    logger.info(f"Preloading {len(locs)} forecasts...")
+
+    for loc in locs:
+        lat, lon = loc
+        logger.debug(f"Starting: {lat} {lon} {date}")
+        _get_forecast_gfs_day(lat, lon, date)
+
+    logger.info("Preload complete.")
 
 
 def get_forecast_on_time(time: datetime.datetime, location: pv.location.Location) -> pd.DataFrame:
@@ -141,7 +162,7 @@ def weights_for_latlon(target: pv.location.Location,
                        br: pv.location.Location,
                        bl: pv.location.Location) -> (float, float, float, float):
     # Assumes tr, tl, br, and bl form a trapezoid
-    logger.debug(f"weighting ({tr.latitude}, {tr.longitude}) ({bl.latitude}, {bl.longitude})")
+    # logger.debug(f"weighting ({tr.latitude}, {tr.longitude}) ({bl.latitude}, {bl.longitude})")
     top = distance_btwn_loc(tr, tl)
     bottom = distance_btwn_loc(br, bl)
     tc = pv.location.Location(tr.latitude, (tr.longitude + tl.longitude) / 2)  # top center
@@ -211,13 +232,9 @@ def get_prev(x: float, ii: float = 4):
 def trapezoid_area(base1: float, base2: float, height: float) -> float:
     return (base1 + base2) * height / 2
 
-def get_forecast_time_range(start_time: datetime.datetime, end_time: datetime.datetime, location: pv.location.Location):
-    pass
 
-
-@cachier(stale_after=datetime.timedelta(hours=6))
 def _get_forecast_gfs_on_measurement(lat: float, lon: float, dt: datetime.datetime) -> pd.DataFrame:
-    logger.debug(f"GFS on measurement {lat} {lon} {dt}")
+    # logger.debug(f"GFS on measurement {lat} {lon} {dt}")
     assert dt.hour % 3 == 0 and dt.minute == 0 and dt.second == 0 and dt.microsecond == 0, "Hour must be on 3 hour multiple"
 
     date_data = _get_forecast_gfs_day(lat, lon, dt.date())
@@ -227,7 +244,7 @@ def _get_forecast_gfs_on_measurement(lat: float, lon: float, dt: datetime.dateti
     return result
 
 
-@cachier(stale_after=datetime.timedelta(hours=6))
+@cachier(stale_after=datetime.timedelta(hours=6), pickle_reload=False)
 def _get_forecast_gfs_day(lat: float, lon: float, date: datetime.date) -> pd.DataFrame:
     """
     Suspected that multithreading this does not work, because of

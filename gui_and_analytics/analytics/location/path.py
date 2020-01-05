@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List
+from typing import List, Generator
 from datetime import datetime, timedelta
 import pvlib as pv
 import pandas as pd
@@ -25,6 +25,10 @@ class Path:
 
         return lats, lons
 
+    def __iter__(self) -> Generator[(pd.Timestamp, pv.location.Location), None, None]:
+        yield from zip(self.timestamps, self.points)
+
+
 class LinearPath(Path):
     @classmethod
     def create(cls, start_loc: pv.location.Location, end_loc: pv.location.Location,
@@ -43,7 +47,7 @@ class LinearPath(Path):
         time_range = end_time - start_time
 
         if npoints is None:  # automatically determine appropriate number of points
-            npoints = time_range / timedelta(minutes=10)
+            npoints = int(time_range / timedelta(minutes=10))
 
         lats = np.linspace(start_loc.latitude, end_loc.latitude, npoints)
 

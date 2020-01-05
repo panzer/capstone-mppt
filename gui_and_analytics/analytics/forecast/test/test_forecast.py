@@ -1,4 +1,5 @@
 import datetime
+import pytz
 import pandas as pd
 import pvlib as pv
 import analytics.forecast.forecast as forecast
@@ -64,3 +65,19 @@ def test_get_forecast_on_time():
 
     # Assert
     print(df['low_clouds'])
+
+
+def test_get_forecast_time_range():
+    # Arrange
+    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    start = datetime.datetime.combine(tomorrow, time=datetime.time(hour=19), tzinfo=pytz.utc)
+    end = start + datetime.timedelta(hours=1)
+    dt_index = pd.DatetimeIndex(start=start, end=end, periods=3)
+    logger.debug(dt_index)
+    loc = pv.location.Location(42, -140)
+
+    # Act
+    df = forecast.get_forecast_time_range(dt_index, loc)
+
+    # Assert
+    print(df)
