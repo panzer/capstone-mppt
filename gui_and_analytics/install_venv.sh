@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-python3 -m venv venv
+python -m venv venv
 
-. ./venv/bin/activate
+. ./venv/scripts/activate
 
 pip install --upgrade pip
 
