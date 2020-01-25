@@ -47,7 +47,7 @@ class LinearPath(Path):
         time_range = end_time - start_time
 
         if npoints is None:  # automatically determine appropriate number of points
-            npoints = int(time_range / timedelta(minutes=10))
+            npoints = int(time_range / timedelta(minutes=60))
 
         lats = np.linspace(start_loc.latitude, end_loc.latitude, npoints)
 
@@ -66,7 +66,7 @@ class SegmentedPath(Path):
     segments: List[LinearPath] = dataclasses.field(default_factory=list)
 
     @classmethod
-    def create(cls, start_loc: pv.location.Location, start_time: datetime):
+    def create(cls, start_loc: pv.location.Location, start_time: datetime) -> SegmentedPath:
         instance = cls([], [])
         instance.points = [start_loc]
         instance.timestamps = [start_time]

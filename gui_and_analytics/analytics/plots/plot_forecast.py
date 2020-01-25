@@ -10,27 +10,75 @@ import mplcursors
 from loguru import logger
 from tqdm import tqdm
 import datetime
+from typing import Optional, Union
+from pint import UnitRegistry
 
 
 def main():
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
     time = datetime.datetime.combine(tomorrow, time=datetime.time(hour=16),
                                      tzinfo=pytz.utc)
-    # plot_forecast_area(top_right=pv.location.Location(42, -140),
-    #                    bottom_left=pv.location.Location(41, -141),
-    #                    time=time, metric="high_clouds")
-    path = ap.LinearPath.create(start_loc=pv.location.Location(42, -140),
-                                end_loc=pv.location.Location(41, -141),
-                                start_time=time, end_time=time+datetime.timedelta(hours=3))
-    plot_forecast_path(path, "ghi_raw")
+    plot_forecast_area(top_right=pv.location.Location(41.5, -139.5),
+                       bottom_left=pv.location.Location(40.5, -140.5),
+                       time=time, metric="low_clouds")
+    # points = [
+    #     pv.location.Location(36, 141),
+    #     pv.location.Location(42, 162),
+    #     pv.location.Location(44, 168),
+    #     pv.location.Location(44, 175),
+    #     pv.location.Location(44, -175),
+    #     pv.location.Location(44, -165),
+    #     pv.location.Location(43, -155),
+    #     pv.location.Location(40, -145),
+    #     pv.location.Location(37, -135),
+    #     pv.location.Location(35, -128),
+    #     pv.location.Location(32, -118)
+    # ]
+    # start = datetime.datetime(2020, 1, 18, tzinfo=pytz.utc)
+    # end = datetime.datetime(2020, 2, 2, tzinfo=pytz.utc)
+    # delta = (end - start) / len(points)
+    # timestamps = [start + (delta * i) for i in range(len(points))]
+    # path: Optional[ap.SegmentedPath] = None
+    # for p, t in zip(points, timestamps):
+    #     if path is None:
+    #         path = ap.SegmentedPath.create(p, t)
+    #     else:
+    #         path.append_point(p, t)
+    # plot_forecast_path(path, "ghi_raw")
+
+
+    # ureg = UnitRegistry()
+    # eff = (50/3.2) * ureg.watt / (ureg.feet ** 2)
+    # eff.ito(ureg.watt / (ureg.meters ** 2))
+    # print(eff)
+    # area = 68000 * ureg.feet ** 2  # square feet
+    # area.ito(ureg.meter ** 2)
+    # i = calc_integration("forecast-2020-01-19T21-39-46.csv", "ghi_raw")
+    # hours = i.astype('timedelta64[h]')
+    # hours = hours.astype('int')
+    # epm2 = hours * ureg.hour * ureg.watt / (ureg.meter ** 2)  # energy per m^2
+    # p = epm2 * area
+    # print(p)
+    # print(p.to(ureg.kilowatt * ureg.hour))
 
 
 def plot_forecast_path(path: ap.Path, metric: str):
     pandas.plotting.register_matplotlib_converters()
     df = fc.get_forecast_path(path)
+    timestamp = datetime.datetime.now().isoformat()
+    timestamp = timestamp[:-7].replace(":", "-")
+    with open(f"forecast-{timestamp}.csv", mode="w") as f:
+        df.to_csv(path_or_buf=f)
     print(df.to_string())
     plt.plot(df[metric])
     plt.show()
+
+
+def calc_integration(path: str, column: str) -> Union[float, np.array]:
+    df = pd.read_csv(path, index_col=0, parse_dates=True)
+    sel_df = df[column].fillna(value=0)
+    integral = np.trapz(sel_df, x=df.index, axis=0)
+    return integral
 
 
 def plot_forecast_area(top_right: pv.location.Location, bottom_left: pv.location.Location,

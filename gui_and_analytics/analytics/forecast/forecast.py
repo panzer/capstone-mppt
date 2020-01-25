@@ -24,8 +24,15 @@ def get_forecast_single(time: datetime.datetime, location: pv.location.Location)
     next_hour = int(get_next(time.hour, ii=1/3))
     prev_hour = int(get_prev(time.hour, ii=1/3))
 
-    next_time = time.replace(hour=next_hour, minute=0, second=0, microsecond=0)
-    prev_time = time.replace(hour=prev_hour, minute=0, second=0, microsecond=0)
+    if next_hour > 23:
+        next_time = time.replace(day=time.day+1, hour=next_hour-24, minute=0, second=0, microsecond=0)
+    else:
+        next_time = time.replace(hour=next_hour, minute=0, second=0, microsecond=0)
+
+    if prev_hour < 0:
+        prev_time = time.replace(day=time.day-1, hour=prev_hour+24, minute=0, second=0, microsecond=0)
+    else:
+        prev_time = time.replace(hour=prev_hour, minute=0, second=0, microsecond=0)
 
     forecast_earlier = get_forecast_on_time(prev_time, location)
     forecast_later = get_forecast_on_time(next_time, location)
@@ -256,7 +263,7 @@ def _get_forecast_gfs_day(lat: float, lon: float, date: datetime.date) -> pd.Dat
     one_week_from_today = today + datetime.timedelta(weeks=1)
     assert lat % 0.25 == 0, "Latitude must be multiple of 0.25"
     assert lon % 0.25 == 0, "Longitude must be multiple of 0.25"
-    assert one_week_from_today.date() - date >= datetime.timedelta(), "Cannot be more than 1 week in the future"
+    # assert one_week_from_today.date() - date >= datetime.timedelta(), "Cannot be more than 1 week in the future"
 
     model = GFS(resolution="quarter")
     start = datetime.datetime.combine(date, datetime.time())
