@@ -6,14 +6,31 @@ It uses Tkinter for the user interface.
 
 ### Getting Started
 
-Use PyCharm!
+1. Download PyCharm Professional edition
+    - https://www.jetbrains.com/pycharm/download/#section=windows
+    - you can get a full license with your student .edu email
 
-Make sure you have python 3.6 or greater
+2. Download Docker
+    - https://docs.docker.com/toolbox/toolbox_install_windows/
 
-`python --version`
+3. Download VNC Viewer
+    - https://www.realvnc.com/en/connect/download/viewer/
 
-If less than python 3.6, figure out a way to upgrade your python version.
+4. Run `./docker_init.sh`
 
-Then, from the `gui_and_analytics` directory:
+5. Run `./run_desktop.sh`
+    - on Mac OS, you may need to go to System Preferences -> Sharing
+      and disable screen sharing
 
-`./install_venv.sh`
+6. Open VNC Viewer, and open a client to `127.0.0.1`.
+    - when prompted, the password is "password"
+
+7. Within VNC Viewer, right click to bring up the menu
+    - Launch Applications->Shells->Bash
+    - this desktop is now common among all collaborators
+    
+8. Try some python scripts
+   - `python -m analytics.plots.run_forecast`
+   
+9. Stop the desktop
+   - in a new bash window (on the host machine) run `./stop_desktop.sh`
