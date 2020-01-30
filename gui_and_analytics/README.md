@@ -30,7 +30,7 @@ It uses Tkinter for the user interface.
     - this desktop is now common among all collaborators
     
 8. Try some python scripts
-   - `python -m analytics.plots.run_forecast`
+   - `python -m analytics.plots.plot_forecast`
    
 9. Stop the desktop
    - in a new bash window (on the host machine) run `./stop_desktop.sh`
