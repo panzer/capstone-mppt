@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import analytics.forecast.forecast as fc
 import analytics.location.path as ap
+import analytics.definitions as adef
 import pvlib as pv
 import pandas as pd
 import numpy as np
@@ -15,36 +16,37 @@ from pint import UnitRegistry
 
 
 def main():
-    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    time = datetime.datetime.combine(tomorrow, time=datetime.time(hour=16),
-                                     tzinfo=pytz.utc)
-    plot_forecast_area(top_right=pv.location.Location(41.5, -139.5),
-                       bottom_left=pv.location.Location(40.5, -140.5),
-                       time=time, metric="low_clouds")
-    # points = [
-    #     pv.location.Location(36, 141),
-    #     pv.location.Location(42, 162),
-    #     pv.location.Location(44, 168),
-    #     pv.location.Location(44, 175),
-    #     pv.location.Location(44, -175),
-    #     pv.location.Location(44, -165),
-    #     pv.location.Location(43, -155),
-    #     pv.location.Location(40, -145),
-    #     pv.location.Location(37, -135),
-    #     pv.location.Location(35, -128),
-    #     pv.location.Location(32, -118)
-    # ]
-    # start = datetime.datetime(2020, 1, 18, tzinfo=pytz.utc)
-    # end = datetime.datetime(2020, 2, 2, tzinfo=pytz.utc)
-    # delta = (end - start) / len(points)
-    # timestamps = [start + (delta * i) for i in range(len(points))]
-    # path: Optional[ap.SegmentedPath] = None
-    # for p, t in zip(points, timestamps):
-    #     if path is None:
-    #         path = ap.SegmentedPath.create(p, t)
-    #     else:
-    #         path.append_point(p, t)
-    # plot_forecast_path(path, "ghi_raw")
+    # tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    # time = datetime.datetime.combine(tomorrow, time=datetime.time(hour=16),
+    #                                  tzinfo=pytz.utc)
+    # plot_forecast_area(top_right=pv.location.Location(41.5, -139.5),
+    #                    bottom_left=pv.location.Location(40.5, -140.5),
+    #                    time=time, metric="low_clouds")
+
+    points = [
+        pv.location.Location(36, 141),
+        pv.location.Location(42, 162),
+        pv.location.Location(44, 168),
+        # pv.location.Location(44, 175),
+        # pv.location.Location(44, -175),
+        # pv.location.Location(44, -165),
+        # pv.location.Location(43, -155),
+        # pv.location.Location(40, -145),
+        # pv.location.Location(37, -135),
+        # pv.location.Location(35, -128),
+        # pv.location.Location(32, -118)
+    ]
+    start = datetime.datetime.now(tz=pytz.utc)
+    end = start + datetime.timedelta(days=1)
+    delta = (end - start) / len(points)
+    timestamps = [start + (delta * i) for i in range(len(points))]
+    path: Optional[ap.SegmentedPath] = None
+    for p, t in zip(points, timestamps):
+        if path is None:
+            path = ap.SegmentedPath.create(p, t)
+        else:
+            path.append_point(p, t)
+    plot_forecast_path(path, "ghi_raw")
 
 
     # ureg = UnitRegistry()
@@ -65,11 +67,12 @@ def main():
 def plot_forecast_path(path: ap.Path, metric: str):
     pandas.plotting.register_matplotlib_converters()
     df = fc.get_forecast_path(path)
+
     timestamp = datetime.datetime.now().isoformat()
     timestamp = timestamp[:-7].replace(":", "-")
-    with open(f"forecast-{timestamp}.csv", mode="w") as f:
+    with open(adef.get_output_path(f"forecast-{timestamp}.csv"), mode="w") as f:
         df.to_csv(path_or_buf=f)
-    print(df.to_string())
+
     plt.plot(df[metric])
     plt.show()
 
