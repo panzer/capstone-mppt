@@ -9,6 +9,7 @@ It uses Tkinter for the user interface.
 1. Download PyCharm Professional edition
     - https://www.jetbrains.com/pycharm/download/#section=windows
     - you can get a full license with your student .edu email
+    - IMPORTANT: check that you have the Docker plugin installed in PyCharm
 
 2. Download Docker
     - https://docs.docker.com/toolbox/toolbox_install_windows/
@@ -34,3 +35,9 @@ It uses Tkinter for the user interface.
    
 9. Stop the desktop
    - in a new bash window (on the host machine) run `./stop_desktop.sh`
+   
+10. In PyCharm, set up the python interpretter to use Docker
+   - Create new Python interpretter
+   - Choose Docker
+   - Choose image capstone-solar-sailor:latest
+   
