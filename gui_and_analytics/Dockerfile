@@ -18,15 +18,15 @@ RUN apt-get install -y fluxbox
 RUN apt-get install -y wget
 RUN apt-get install -y wmctrl
 
-# PHASE 3 - copy bootstrap.sh to root and run it within the Docker container
-COPY bootstrap.sh /
-CMD '/bootstrap.sh'
-
-# PHASE 4 - upgrade pip
+# PHASE 3 - upgrade pip
 RUN pip install --upgrade pip
 
-# PHASE 5 - pip install requirements (Python project dependencies)
+# PHASE 4 - pip install requirements (Python project dependencies)
 COPY requirements.txt /app/requirements.txt
 WORKDIR /app
 RUN pip install -r requirements.txt
 
+# PHASE 5 - copy bootstrap.sh to root and run it within the Docker container
+COPY bootstrap.sh /app
+CMD 'dos2unix bootstrap.sh'
+CMD './bootstrap.sh'
