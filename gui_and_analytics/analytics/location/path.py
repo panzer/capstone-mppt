@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Generator
+from typing import List, Generator, Union
 from datetime import datetime, timedelta
 import pvlib as pv
 import pandas as pd
@@ -11,7 +11,7 @@ import abc
 @dataclasses.dataclass()
 class Path:
     points: List[pv.location.Location]
-    timestamps: List[pd.Timestamp]
+    timestamps: List[Union[pd.Timestamp, datetime]]
 
     @classmethod
     @abc.abstractmethod
@@ -72,10 +72,10 @@ class SegmentedPath(Path):
         instance.timestamps = [start_time]
         return instance
 
-    def append_point(self, loc: pv.location.Location, time: datetime):
+    def append_point(self, loc: pv.location.Location, time: datetime, npoints=None):
         previous_loc = self.points[-1]
         previous_time = self.timestamps[-1]
-        line = LinearPath.create(previous_loc, loc, previous_time, time)
+        line = LinearPath.create(previous_loc, loc, previous_time, time, npoints=npoints)
         self.points.extend(line.points[1:])
         self.timestamps.extend(line.timestamps[1:])
         self.segments.append(line)

@@ -36,7 +36,7 @@ def main():
         # pv.location.Location(35, -128),
         # pv.location.Location(32, -118)
     ]
-    start = datetime.datetime.now(tz=pytz.utc)
+    start = datetime.datetime(day=1, month=1, year=2020, tzinfo=pytz.utc)
     end = start + datetime.timedelta(days=1)
     delta = (end - start) / len(points)
     timestamps = [start + (delta * i) for i in range(len(points))]
