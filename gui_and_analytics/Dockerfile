@@ -8,6 +8,7 @@ RUN apt-get install apt-utils -y
 RUN apt-get install git -y
 RUN apt-get install build-essential -y
 RUN apt-get install cython3 -y
+RUN apt-get install gfortran libatlas-base-dev python-pip python-dev -y
 
 # PHASE 2 - Install dependencies for bootstrap.sh
 # Using a virtual network computing (VNC) screen:

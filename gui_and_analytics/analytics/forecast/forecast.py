@@ -274,4 +274,4 @@ def _get_forecast_gfs_day(lat: float, lon: float, date: datetime.date) -> pd.Dat
     except requests.exceptions.ConnectionError:
         raise ConnectionAbortedError("Connection Error while fetching forecast data. Check network connection.")
 
-    return model.rename(data)
+    return model.process_data(data)
