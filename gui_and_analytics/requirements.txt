@@ -4,7 +4,7 @@ cachier==1.2.8
 dataclasses==0.6
 gmplot==1.2.0
 jsonlines==1.2.0
-loguru==0.3.2
+loguru==0.5.3
 matplotlib==3.1.1
 mplcursors==0.3
 netCDF4==1.5.3
